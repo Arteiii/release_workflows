@@ -2,6 +2,8 @@
 
 ## FastAPI Server
 
+yee i fucked up git lib no async support (i think)
+
 ### Installation
 
 Install dependencies using Poetry:
