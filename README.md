@@ -1,49 +1,82 @@
-# ReleaseWorkflows
+# Release Workflows
 
-## FastAPI Server
+Rust-based application that allows you to manage Git repositories and create a custom Git origin with
+a RESTful API.
 
-yee i fucked up git lib no async support (i think)
+## Features
 
-### Installation
+- Initialize and manage Git repositories using `gitoxide`.
+- Expose Git operations as HTTP endpoints with a web framework (e.g., `warp`).
 
-Install dependencies using Poetry:
+## Project Structure
 
-```bash
-poetry install
-- NOTE: Poetry installation instructions can be found [here](https://python-poetry.org/docs/).
-
-### Start FastAPI Server
-
-```bash
-Copy code
-uvicorn main:app
+```
+root/
+│
+├── src/
+│ ├── main.rs
+│ │
+│ ├── git/
+│ │ ├── mod.rs
+│ │ └── manager.rs
+│ │
+│ ├── api/
+│ │ ├── mod.rs
+│ │ └── routes.rs
+│ │
+│ └── util/
+│ ├── mod.rs
+│ └── error.rs
+│
+├── .gitignore
+├── .env
+├── Cargo.toml
+├── LICENSE
+└── README.md
 ```
 
-## Git Workflows
+## Getting Started
 
-### Local Tag Creation and Push
+1. Clone the repository:
 
-Create a new tag and push it to the remote repository:
+     ```bash
+     git clone https://github.com/Arteiii/release_workflows.git
+     cd my_git_origin
+     ```
+
+2. Build the project:
+
+    ```bash
+    cargo build
+    ```
+
+3. Run the application:
+
+    ```bash
+    cargo run
+    ```
+
+Access the API at http://localhost:3030.
+
+## Usage
+
+### Create a new Git repository:
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+curl -X POST http://localhost:3030/create_repo/my_repository
 ```
 
-### Delete Tag
+## Contributing
 
-To delete a tag locally and on the remote repository:
+If you'd like to contribute to this project, please follow these guidelines:
 
-```bash
-git tag -d v1.0.0
-git push origin --delete v1.0.0
-```
+1. Fork the repository.
+2. Create a new branch: git checkout -b feature/my-feature.
+3. Make your changes and commit them: git commit -m 'Add new feature'.
+4. Push to the branch: git push origin feature/my-feature.
+5. Submit a pull request.
 
-## Additional Notes
+## [LICENSE](LICENSE)
 
-- FastAPI Development:
-  During development, run the FastAPI server with auto-reload using main.py
+This project is licensed under the [AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.html) License.
 
-- Dependencies:
-  Ensure you have Poetry installed for managing Python dependencies
-  
