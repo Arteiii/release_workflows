@@ -18,4 +18,7 @@ opt-level = 3
 gitoxide = "0.33.0"
 tracing = "0.1.40"
 tracing-subscriber = "0.3.18"
-color-eyre = "0.6.2"
+color-eyre = { version = "0.6.2", default-features = true }
+poem = "2.0.1"
+poem-openapi = { version = "4.0.1", features = ["redoc", "swagger-ui"] }
+tokio = { version = "1", features = ["full"] }
