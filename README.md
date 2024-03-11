@@ -5,8 +5,8 @@ a RESTful API.
 
 ## Features
 
-- Initialize and manage Git repositories using `gitoxide`.
-- Expose Git operations as HTTP endpoints with a web framework (e.g., `warp`).
+- Initialize and manage Git repositories using `git2`
+- Expose Git operations as HTTP endpoints with POEM.
 
 ## Project Structure
 
