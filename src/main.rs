@@ -1,14 +1,14 @@
 use color_eyre::eyre::Result;
 use poem::{listener::TcpListener, Route};
 use poem_openapi::OpenApiService;
-use tracing::{event, span, Level};
+use tracing::{event, Level};
 
 use crate::api::routes::Api;
-use git::manager::RepositoryManager;
+// use git::manager::RepositoryManager;
 
 mod api;
-mod git;
-mod util;
+// mod git;
+// mod util;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -31,8 +31,6 @@ async fn main() -> Result<()> {
         .nest("/api", api_service)
         .nest("/docs/redoc", redoc)
         .nest("/docs/swagger", swagger_ui);
-
-    // RepositoryManager::trigger_panic("Test Panic 123");
 
     poem::Server::new(TcpListener::bind("0.0.0.0:3000"))
         .run(app)
