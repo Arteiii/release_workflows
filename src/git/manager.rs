@@ -13,8 +13,4 @@ impl RepositoryManager {
 
         return repo;
     }
-
-    pub fn trigger_panic(msg: &str) {
-        panic!("failed to init: {}", msg)
-    }
 }
