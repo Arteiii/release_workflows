@@ -1,31 +1,24 @@
-use poem::Result;
-use poem_openapi::payload::PlainText;
-use poem_openapi::{param, OpenApi, Tags};
+use poem_openapi::{param, payload::PlainText, ApiResponse, OpenApi, Tags};
 
 use crate::git::manager::RepositoryManager as Repo;
-use tokio::fs;
 
-fn is_valid_folder_name(name: &str) -> bool {
-    // Check for invalid characters in Windows file system
-    let invalid_chars_windows = ['\\', '/', ':', '*', '?', '"', '<', '>', '|'];
-    if cfg!(windows) && name.chars().any(|c| invalid_chars_windows.contains(&c)) {
-        return false;
-    }
-
-    // Check for invalid characters in Unix file system
-    let invalid_chars_unix = ['/'];
-    if cfg!(unix) && name.chars().any(|c| invalid_chars_unix.contains(&c)) {
-        return false;
-    }
-
-    // Additional checks can be added based on specific requirements
-
-    // If no invalid characters were found, the name is valid
-    true
+pub struct Api {
+    repo_manager: Repo,
 }
 
-#[derive(Default)]
-pub struct Api {}
+#[derive(ApiResponse)]
+pub enum AddRepository {
+    /// return when successfully
+    #[oai(status = 200)]
+    Ok,
+    /// return when not
+    #[oai(status = 404)]
+    NotFound,
+
+    /// return when not
+    #[oai(status = 500)]
+    ServerError,
+}
 
 #[derive(Tags)]
 enum MyTags {
@@ -34,6 +27,11 @@ enum MyTags {
 
 #[OpenApi]
 impl Api {
+    pub fn new(repos_base_path: &str) -> Self {
+        let repo_manager = Repo::new(repos_base_path);
+        Api { repo_manager }
+    }
+
     /// Greet the customer
     ///
     /// # Example
@@ -47,28 +45,20 @@ impl Api {
         }
     }
 
-    /// Create new Repository
+    /// add a new Repository
+    ///
+    /// adds a new entry to the list of periodically checked repos
     #[oai(path = "/repository/:name", method = "post")]
-    pub async fn add_repository(&self, name: param::Path<String>) -> Result<PlainText<String>> {
-        let sanitized_name = name.to_string().replace(' ', "-");
-        let base_path = "E:/RepoTests";
-        let location = format!("{}/Repos/{}", base_path, sanitized_name);
-
-        // check if the path already exists
-        if std::path::Path::new(&location).exists() {
-            return Ok(PlainText(format!(
-                "Repository already exists: {}",
-                sanitized_name
-            )));
-        }
-
-        // check if the sanitized name is valid
-        if is_valid_folder_name(&sanitized_name) {
-            // create the repository
-            let _repo = Repo::create_repository(&location).await;
-            Ok(PlainText(format!("Created Repo: {}", location)))
-        } else {
-            Ok(PlainText(format!("Failed To Create: {}", sanitized_name)))
+    pub async fn add_repository(&self, name: param::Path<String>) -> AddRepository {
+        match self.repo_manager.create_repository(&name).await {
+            Ok(_) => {
+                tracing::debug!("repo is successfully created ({})", name.to_string());
+                AddRepository::Ok
+            }
+            Err(err) => {
+                tracing::error!("failed to create the repo ({})", err);
+                AddRepository::ServerError
+            }
         }
     }
 }

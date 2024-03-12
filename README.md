@@ -18,17 +18,16 @@ root/
 │ │
 │ ├── git/
 │ │ ├── mod.rs
-│ │ └── manager.rs
+│ │ └── ...
 │ │
 │ ├── api/
 │ │ ├── mod.rs
-│ │ └── routes.rs
+│ │ └── ...
 │ │
 │ └── util/
-│ ├── mod.rs
-│ └── error.rs
+│   ├── mod.rs
+│   └── ...
 │
-├── .gitignore
 ├── .env
 ├── Cargo.toml
 ├── LICENSE

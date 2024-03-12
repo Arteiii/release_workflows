@@ -1239,6 +1239,7 @@ dependencies = [
  "owo-colors 4.0.0",
  "poem",
  "poem-openapi",
+ "regex",
  "tokio",
  "tracing",
  "tracing-subscriber",
