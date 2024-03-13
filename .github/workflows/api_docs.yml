@@ -19,8 +19,14 @@ jobs:
       - name: Build
         run: cargo build --release
 
-      - name: Change directory
-        run: cd ./target/release/
+      - name: Change directory and show files
+        run: |
+          cd /target/release/
+          pwd
+          tree
+
+      - name: Mark executable
+        run: chmod +x release_workflows.exe
 
       - name: Generate Docs
         run: ./release_workflows.exe --static-docs
