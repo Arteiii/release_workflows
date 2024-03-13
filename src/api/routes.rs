@@ -1,4 +1,9 @@
-use poem_openapi::{param, payload::PlainText, ApiResponse, OpenApi, Tags};
+use poem_openapi::{
+    param,
+    payload::Json,
+    types::{ParseFromJSON, ToJSON},
+    ApiResponse, OpenApi,
+};
 
 use crate::git::manager::RepositoryManager as Repo;
 
@@ -8,56 +13,100 @@ pub struct Api {
 
 #[derive(ApiResponse)]
 pub enum AddRepository {
-    /// return when successfully
-    #[oai(status = 200)]
+    /// Successfully -> Created
+    #[oai(status = 201)]
     Ok,
-    /// return when not
-    #[oai(status = 404)]
-    NotFound,
 
-    /// return when not
+    /// Server Errors -> Internal Server Error
     #[oai(status = 500)]
     ServerError,
 }
 
-#[derive(Tags)]
-enum MyTags {
-    V1,
+#[derive(ApiResponse)]
+pub enum GetTags<T: ParseFromJSON + ToJSON> {
+    /// Successfully -> OK
+    #[oai(status = 200)]
+    Ok(Json<T>),
+
+    /// Client Error -> Not Found
+    #[oai(status = 404)]
+    NotFound,
+}
+
+#[derive(ApiResponse)]
+pub enum CreateRepository {
+    /// Successfully -> Created
+    #[oai(status = 201)]
+    Ok(Json<String>),
+
+    /// Server Errors -> Failed Response Body For Details
+    #[oai(status = 500)]
+    ServerError(Json<String>),
 }
 
 #[OpenApi]
 impl Api {
     pub fn new(repos_base_path: &str) -> Self {
+        // Initialize RepoManager
         let repo_manager = Repo::new(repos_base_path);
+
         Api { repo_manager }
     }
 
-    /// Greet the customer
+    /// Create a new Repository
     ///
-    /// # Example
-    ///
-    /// Call `/1234/hello` to get the response `"Hello 1234!"`.
-    #[oai(path = "/hello/:name", method = "get", tag = "MyTags::V1")]
-    pub async fn index(&self, name: param::Path<Option<String>>) -> PlainText<String> {
-        match name.0 {
-            Some(name) => PlainText(format!("Hello {}!", name)),
-            None => PlainText("Hello!".to_string()),
+    /// create new repo
+    #[oai(path = "/repo/:name/create", method = "post")]
+    pub async fn create_repository(&self, name: param::Path<String>) -> CreateRepository {
+        let name = name.to_string();
+        match self.repo_manager.create_repository(&name).await {
+            Ok(_) => {
+                let msg = format!("{} Sucessfully Created", name);
+                tracing::debug!(msg);
+                CreateRepository::Ok(Json(msg))
+            }
+            Err(err) => {
+                let err_msg = format!("{} failed to create ({})", name, err);
+                tracing::error!(err_msg);
+                CreateRepository::ServerError(Json(err_msg))
+            }
         }
     }
 
     /// add a new Repository
     ///
-    /// adds a new entry to the list of periodically checked repos
-    #[oai(path = "/repository/:name", method = "post")]
-    pub async fn add_repository(&self, name: param::Path<String>) -> AddRepository {
-        match self.repo_manager.create_repository(&name).await {
+    /// add new repo form url
+    #[oai(path = "/repo/:name/add/:url", method = "post")]
+    pub async fn add_repository(
+        &self,
+        name: param::Path<String>,
+        url: param::Path<String>,
+    ) -> AddRepository {
+        tracing::debug!("adding repo {} from: {}", name.to_string(), url.to_string());
+        match self.repo_manager.clone_repository(&url, &name).await {
             Ok(_) => {
-                tracing::debug!("repo is successfully created ({})", name.to_string());
+                tracing::debug!("repo is successfully cloned ({})", name.to_string());
                 AddRepository::Ok
             }
             Err(err) => {
-                tracing::error!("failed to create the repo ({})", err);
+                tracing::error!("failed to clone the repo ({})", err);
                 AddRepository::ServerError
+            }
+        }
+    }
+
+    /// get repo tags
+    #[oai(path = "/repo/:name/tags", method = "get")]
+    pub async fn get_tags(&self, name: param::Path<String>) -> GetTags<Vec<String>> {
+        tracing::debug!("requesting tags for ({})", name.to_string());
+        match self.repo_manager.get_tags(&name).await {
+            Ok(tags) => {
+                tracing::debug!("get tags successfully ({})", name.to_string());
+                GetTags::Ok(Json(tags))
+            }
+            Err(e) => {
+                tracing::error!("failed to get tags ({})", e);
+                GetTags::NotFound
             }
         }
     }
