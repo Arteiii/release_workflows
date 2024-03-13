@@ -1,7 +1,5 @@
 # Release Workflows
 
-NOT WORKING prob wont work on more...
-
 ## Features
 
 - Initialize and manage Git repositories using `git2`

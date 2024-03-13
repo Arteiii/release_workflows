@@ -1,12 +1,13 @@
 use std::path::Path;
 
 use git2::Repository;
-use regex::Regex;
 use serde::{Deserialize, Serialize};
 use tokio::time;
 
+use crate::util::file_system::FileSystem;
+
 pub struct RepositoryManager {
-    base_location: String,
+    file_system: FileSystem,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -21,17 +22,8 @@ pub struct TagInfo {
 
 impl RepositoryManager {
     pub fn new(base_location: &str) -> Self {
-        RepositoryManager {
-            base_location: base_location.to_string(),
-        }
-    }
-
-    fn git_path(base_location: &str, name: &str) -> String {
-        // replace whitespaces with hyphens and remove invalid characters
-        let re = Regex::new(r"[^A-Za-z0-9-_.]").unwrap();
-        let sanitized_name = re.replace_all(name, "-").into_owned();
-
-        format!("{}/{}.git", base_location, sanitized_name)
+        let file_system = FileSystem::new(&base_location);
+        RepositoryManager { file_system }
     }
 
     // pasted prob not working
@@ -57,8 +49,40 @@ impl RepositoryManager {
     //     }
     // }
 
+    // that is sooo stupid but tbh I don!t know how else to "pull" / sync changes using git2
+    pub async fn reset_repository_using_origin(location: &str) -> Result<Repository, String> {
+        // open the repository
+        let repo = match Repository::open(location) {
+            Ok(repo) => repo,
+            Err(e) => return Err(format!("Failed to open repository: {}", e)),
+        };
+
+        // get the remote url
+        let remote_url = match repo.find_remote("origin") {
+            Ok(remote) => match remote.url() {
+                Some(url) => url.to_string(),
+                None => return Err("Remote URL not found".to_string()),
+            },
+            Err(e) => return Err(format!("Failed to find remote: {}", e)),
+        };
+
+        // delete local repository
+        match std::fs::remove_dir_all(location) {
+            Ok(()) => (),
+            Err(e) => return Err(format!("Failed to delete repository: {}", e)),
+        };
+
+        // clone again
+        let repo = match Repository::clone(&remote_url, &location) {
+            Ok(repo) => repo,
+            Err(e) => return Err(format!("Failed to clone repository: {}", e)),
+        };
+
+        Ok(repo)
+    }
+
     pub async fn create_repository(&self, name: &str) -> Result<Repository, String> {
-        let location = Self::git_path(&self.base_location, &name);
+        let location = self.file_system.git_path(&name);
 
         if Path::new(&location).exists() {
             return Err(format!("Repository already exists at: {}", location));
@@ -73,7 +97,8 @@ impl RepositoryManager {
     }
 
     pub async fn clone_repository(&self, url: &str, name: &str) -> Result<Repository, String> {
-        let location = Self::git_path(&self.base_location, &name);
+        let name = name.to_string();
+        let location = self.file_system.git_path(&name);
 
         if Path::new(&location).exists() {
             return Err(format!("Repository already exists at: {}", location));
@@ -84,28 +109,18 @@ impl RepositoryManager {
             Err(e) => return Err(format!("Failed to clone repository: {}", e)),
         };
 
-        // Schedule a periodic task to pull updates every hour
+        // schedule a periodic task to pull updates every hour
         tokio::spawn(async move {
             loop {
-                // Fetch updates from the remote repository
-                let mut remote = match repo.find_remote("origin") {
-                    Ok(remote) => remote,
+                // Reset the repository to the state of the remote
+                match RepositoryManager::reset_repository_using_origin(&location).await {
+                    Ok(_) => (),
                     Err(e) => {
-                        eprintln!("Failed to find remote: {}", e);
-                        time::sleep(time::Duration::from_secs(3600)).await;
-                        continue;
+                        tracing::error!("Failed to reset repository ({})", e);
                     }
                 };
-                if let Err(e) = remote.fetch(&[], None, None) {
-                    eprintln!("Failed to fetch updates from remote: {}", e);
-                }
 
-                // Pull updates into the local repository
-                if let Err(e) = repo.pull(&[], None, None) {
-                    eprintln!("Failed to pull updates into local repository: {}", e);
-                }
-
-                // Sleep for an hour before fetching updates again
+                // Sleep for 1 hour
                 time::sleep(time::Duration::from_secs(3600)).await;
             }
         });
@@ -114,7 +129,7 @@ impl RepositoryManager {
     }
 
     pub async fn get_tags(&self, name: &str) -> Result<Vec<String>, String> {
-        let location = Self::git_path(&self.base_location, &name);
+        let location = self.file_system.git_path(&name);
 
         let repo = match Repository::open(&location) {
             Ok(repo) => repo,

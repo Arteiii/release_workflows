@@ -8,7 +8,10 @@ use tracing_subscriber::FmtSubscriber;
 use crate::api::routes::Api;
 
 mod api;
+mod build;
 mod git;
+
+mod util;
 
 fn setup_tracing() {
     let subscriber = FmtSubscriber::builder()
@@ -23,13 +26,13 @@ async fn main() -> Result<()> {
     setup_tracing();
 
     // log startup event
-    tracing::info!("Startup!");
+    info!("Startup!");
 
     // install error handling
     color_eyre::install()?;
 
     // log eyre installation
-    tracing::debug!("Eyre installed");
+    debug!("Eyre installed");
 
     // base path for repositories
     let base_path = "E:/RepoTests/Repos";
