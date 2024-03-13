@@ -55,14 +55,14 @@ root/
     cargo run
     ```
 
-Access the API at http://localhost:3030.
+Access the API at http://localhost:3000.
 
 ## Usage
 
 ### Create a new Git repository:
 
 ```bash
-curl -X POST http://localhost:3030/create_repo/my_repository
+curl -X POST http://localhost:3000/create_repo/my_repository
 ```
 
 ## Contributing
