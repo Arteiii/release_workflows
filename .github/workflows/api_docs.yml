@@ -23,7 +23,7 @@ jobs:
         run: cd ./target/release/
 
       - name: Generate Docs
-        run: release_workflows.exe --static-docs
+        run: ./release_workflows.exe --static-docs
 
       - name: Copy HTML files to GitHub Pages directory
         run: |
