@@ -21,7 +21,9 @@ jobs:
 
       - name: Change directory and show files
         run: |
-          cd /target/release/
+          pwd
+          tree
+          cd ./target/release/
           pwd
           tree
 
