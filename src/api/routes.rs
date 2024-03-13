@@ -11,6 +11,7 @@ use tracing::{debug, error, info};
 use crate::build::{make, script};
 use crate::git::manager::RepositoryManager as Repo;
 use crate::util::file_system::FileSystem;
+use crate::util::workflows::{workflows_exist, WorkflowScripts};
 
 pub struct Api {
     repo_manager: Repo,
@@ -55,6 +56,17 @@ pub enum BuildRepo {
     /// Successfully -> Created
     #[oai(status = 201)]
     Ok(Json<String>),
+
+    /// Server Errors -> Failed Build Response Body For Details
+    #[oai(status = 500)]
+    ServerError(Json<String>),
+}
+
+#[derive(ApiResponse)]
+pub enum BuildScriptsResponse {
+    /// Successfully -> Created
+    #[oai(status = 201)]
+    Ok(Json<WorkflowScripts>),
 
     /// Server Errors -> Failed Build Response Body For Details
     #[oai(status = 500)]
@@ -198,11 +210,11 @@ impl Api {
 
         let git_path = &self.file_system.git_path(&repo_name);
 
-        if !self.file_system.release_workflow_exists(&git_path) {
-            let msg = format!("The release_workflow folder does not exist ({})", &git_path);
-            error!(msg);
-            return BuildRepo::ServerError(Json(msg.to_string()));
-        }
+        // if !self.file_system.release_workflow_exists(&git_path) {
+        //     let msg = format!("The release_workflow folder does not exist ({})", &git_path);
+        //     error!(msg);
+        //     return BuildRepo::ServerError(Json(msg.to_string()));
+        // }
 
         // validate the method
         if !["make", "script", "cargo", "docker"].contains(&method.as_str()) {
@@ -291,5 +303,34 @@ impl Api {
         info!(msg);
 
         BuildRepo::Ok(Json(msg))
+    }
+
+    /// Get The Available Build Scripts
+    ///
+    /// this is just a support endpoint for `/repo/:name/build/:method`
+    ///
+    /// it returns a list of available scripts
+    /// more details on scripts can be found in the description of the main endpoint
+    #[oai(path = "/repo/:name/build", method = "get")]
+    pub async fn get_build_scripts_for_repo(
+        &self,
+        name: param::Path<String>,
+    ) -> BuildScriptsResponse {
+        let repo_name = name.to_string();
+
+        let git_path = self.file_system.git_path(&repo_name);
+
+        // serialize the struct to json
+        match workflows_exist(&git_path) {
+            Ok(script_data) => {
+                info!("get build script success ({})", name.to_string());
+                BuildScriptsResponse::Ok(Json(script_data))
+            }
+            Err(err) => {
+                let err_msg = format!("failed to get build scripts: {}", err);
+                error!(err_msg);
+                BuildScriptsResponse::ServerError(Json(err_msg))
+            }
+        }
     }
 }

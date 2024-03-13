@@ -1,5 +1,9 @@
-use std::fs;
+use std::{fs, io, path::Path};
 
+use poem_openapi::Object;
+
+// Define the WorkflowScripts struct
+#[derive(Debug, Object, Clone, Eq, PartialEq)]
 pub struct WorkflowScripts {
     makefile: bool,
     script: bool,
@@ -20,28 +24,40 @@ impl WorkflowScripts {
     fn set_script(&mut self, exists: bool) {
         self.script = exists;
     }
+
+    fn has_makefile(&self) -> bool {
+        self.makefile
+    }
+
+    fn has_script(&self) -> bool {
+        self.script
+    }
 }
 
-pub fn workflows_exist(path: &str) -> Option<WorkflowScripts> {
-    let release_workflow_path = format!("{}/workflows", path);
+pub fn workflows_exist(path: &str) -> Result<WorkflowScripts, io::Error> {
+    let makefile_path = format!("{}/workflows/make/Makefile", path);
+    let script_path = format!("{}/workflows/script/build_script.sh", path);
 
-    if let Ok(entries) = fs::read_dir(release_workflow_path) {
-        let mut scripts = WorkflowScripts::new();
+    let mut scripts = WorkflowScripts::new();
 
-        for entry in entries {
-            if let Ok(entry) = entry {
-                if let Some(file_name) = entry.file_name().to_str() {
-                    if file_name.eq_ignore_ascii_case("make") {
-                        scripts.set_makefile(true);
-                    } else if file_name.eq_ignore_ascii_case("script") {
-                        scripts.set_script(true);
-                    }
-                }
-            }
+    if let Ok(metadata) = fs::metadata(&makefile_path) {
+        if metadata.is_file() {
+            scripts.set_makefile(true);
         }
+    }
 
-        Some(scripts)
+    if let Ok(metadata) = fs::metadata(&script_path) {
+        if metadata.is_file() {
+            scripts.set_script(true);
+        }
+    }
+
+    if scripts.has_makefile() || scripts.has_script() {
+        Ok(scripts)
     } else {
-        None
+        Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            "Required files not found in release workflow directory",
+        ))
     }
 }
