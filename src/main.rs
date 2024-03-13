@@ -1,6 +1,6 @@
 use color_eyre::eyre::{eyre, Result};
 use poem::middleware::Cors;
-use poem::{listener::TcpListener, EndpointExt, Route};
+use poem::{endpoint::StaticFilesEndpoint, listener::TcpListener, EndpointExt, Route};
 use poem_openapi::OpenApiService;
 use tracing::{debug, error, info, subscriber::set_global_default, Level};
 use tracing_subscriber::FmtSubscriber;
@@ -46,10 +46,16 @@ async fn main() -> Result<()> {
     let app: Route = Route::new()
         .nest("/api", api_service)
         .nest("/redoc", redoc)
-        .nest("/", swagger_ui);
+        .nest(
+            "/",
+            StaticFilesEndpoint::new("E:/RepoTests/Repos/")
+                .show_files_listing()
+                .index_file("index.html"),
+        )
+        .nest("/docs", swagger_ui);
 
     // run the server
-    if let Err(err) = poem::Server::new(TcpListener::bind("0.0.0.0:3000"))
+    if let Err(err) = poem::Server::new(TcpListener::bind("0.0.0.0:8080"))
         .run(app.with(Cors::new()))
         .await
     {

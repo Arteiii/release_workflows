@@ -1,7 +1,6 @@
 # Release Workflows
 
-Rust-based application that allows you to manage Git repositories and create a custom Git origin with
-a RESTful API.
+NOT WORKING prob wont work on more...
 
 ## Features
 
@@ -34,36 +33,67 @@ root/
 └── README.md
 ```
 
-## Getting Started
+[//]: # ()
 
-1. Clone the repository:
+[//]: # (## Getting Started)
 
-     ```bash
-     git clone https://github.com/Arteiii/release_workflows.git
-     cd my_git_origin
-     ```
+[//]: # ()
 
-2. Build the project:
+[//]: # (1. Clone the repository:)
 
-    ```bash
-    cargo build
-    ```
+[//]: # ()
 
-3. Run the application:
+[//]: # (     ```bash)
 
-    ```bash
-    cargo run
-    ```
+[//]: # (     git clone https://github.com/Arteiii/release_workflows.git)
 
-Access the API at http://localhost:3000.
+[//]: # (     cd my_git_origin)
 
-## Usage
+[//]: # (     ```)
 
-### Create a new Git repository:
+[//]: # ()
 
-```bash
-curl -X POST http://localhost:3000/create_repo/my_repository
-```
+[//]: # (2. Build the project:)
+
+[//]: # ()
+
+[//]: # (    ```bash)
+
+[//]: # (    cargo build)
+
+[//]: # (    ```)
+
+[//]: # ()
+
+[//]: # (3. Run the application:)
+
+[//]: # ()
+
+[//]: # (    ```bash)
+
+[//]: # (    cargo run)
+
+[//]: # (    ```)
+
+[//]: # ()
+
+[//]: # (Access the API at http://localhost:3000.)
+
+[//]: # ()
+
+[//]: # (## Usage)
+
+[//]: # ()
+
+[//]: # (### Create a new Git repository:)
+
+[//]: # ()
+
+[//]: # (```bash)
+
+[//]: # (curl -X POST http://localhost:3000/create_repo/my_repository)
+
+[//]: # (```)
 
 ## Contributing
 
