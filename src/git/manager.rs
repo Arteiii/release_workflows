@@ -1,7 +1,6 @@
 use std::path::Path;
 
 use git2::Repository;
-use serde::{Deserialize, Serialize};
 use tokio::time;
 
 use crate::util::file_system::FileSystem;
@@ -10,7 +9,6 @@ pub struct RepositoryManager {
     file_system: FileSystem,
 }
 
-#[derive(Serialize, Deserialize)]
 pub struct TagInfo {
     pub name: String,
     pub target_commit_id: String,

@@ -60,7 +60,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             redoc_file.write_all(redoc_html_content.as_bytes())?;
 
             // Generate the HTML content
-            let html_content = format!(r#"<html><head><title>{}</title><style>body{{font-family:Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;}}.button{{padding:20px 40px;font-size:18px;margin:10px;border:none;cursor:pointer;border-radius:8px;background-color:#007bff;color:white;text-align:center;text-decoration:none;transition:background-color 0.3s;}}.button:hover{{background-color:#0056b3;}}</style></head><body><h1>Welcome to {} API Documentation</h1><a href="redoc.html" class="button">Redoc</a><a href="swagger_ui.html" class="button">Swagger UI</a></body></html>"#, api_name, api_name);
+            let html_content = format!(
+                r#"<html><head><title>{}</title><style>body{{font-family:Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;}}.button{{padding:20px 40px;font-size:18px;margin:10px;border:none;cursor:pointer;border-radius:8px;background-color:#007bff;color:white;text-align:center;text-decoration:none;transition:background-color 0.3s;}}.button:hover{{background-color:#0056b3;}}</style></head><body><h1>Welcome to {} API Documentation</h1><a href="redoc.html" class="button">Redoc</a><a href="swagger_ui.html" class="button">Swagger UI</a></body></html>"#,
+                api_name, api_name
+            );
             let mut file = File::create("index.html")?;
             file.write_all(html_content.as_bytes())?;
 

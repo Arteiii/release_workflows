@@ -16,18 +16,25 @@ jobs:
       - name: Set up Rust
         uses: moonrepo/setup-rust@v1
 
-      - name: Build and generate docs
-        run: cargo build --release && ./target/release/release_workflows.exe --static-docs
+      - name: Build
+        run: cargo build --release
+
+      - name: Change directory
+        run: cd ./target/release/
+
+      - name: Generate Docs
+        run: release_workflows.exe --static-docs
 
       - name: Copy HTML files to GitHub Pages directory
         run: |
           mkdir -p docs
-          cp -R target/release/*.html docs/
+          cp -R ./*.html docs/
 
       - name: Commit and push changes to GitHub Pages
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          git checkout gh-pages
           git add docs/*
           git commit -m "Update docs"
-          git push origin main
+          git push origin gh-pages
