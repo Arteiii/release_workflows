@@ -1,6 +1,5 @@
 use std::process::Command;
 
-use poem_openapi::payload::PlainText;
 use poem_openapi::{
     param,
     payload::Json,
@@ -118,7 +117,7 @@ impl Api {
     //     let name = name.to_string();
     //     match self.repo_manager.create_repository(&name).await {
     //         Ok(_) => {
-    //             let msg = format!("{} Sucessfully Created", name);
+    //             let msg = format!("{} Successfully Created", name);
     //             tracing::debug!(msg);
     //             CreateRepository::Ok(Json(msg))
     //         }
@@ -317,12 +316,22 @@ impl Api {
         BuildRepo::Ok(Json(msg))
     }
 
-    /// Get The Available Build Scripts
+    /// Retrieves the available build scripts for a repository.
     ///
-    /// this is just a support endpoint for `/repo/:name/build/:method`
+    /// This endpoint is designed as support for the `/repo/:name/build/:method` endpoint.
+    /// It returns a list of available scripts for building the repository.
+    /// More details on scripts can be found in the description of the main endpoint.
     ///
-    /// it returns a list of available scripts
-    /// more details on scripts can be found in the description of the main endpoint
+    /// # Parameters
+    ///
+    /// * `name`: The name of the repository.
+    ///
+    /// # Returns
+    ///
+    /// If the operation succeeds, returns `BuildScriptsResponse::Ok` containing a JSON object
+    /// representing the available build scripts. If an error occurs, returns `BuildScriptsResponse::ServerError`
+    /// with an appropriate error message.
+    ///
     #[oai(path = "/repo/:name/build", method = "get")]
     pub async fn get_build_scripts_for_repo(
         &self,
@@ -346,11 +355,20 @@ impl Api {
         }
     }
 
-    /// sync repo with origin
+    /// Syncs a repository with its origin.
     ///
-    /// this deletes the local repo to clone it again from the origin
+    /// This operation deletes the local repository and clones it again from the origin.
+    /// As long as there are no local changes (as it should be), this operation is without risk.
     ///
-    /// as long as there are no local changes (as it should be) this is without risk
+    /// # Parameters
+    ///
+    /// * `name`: The name of the repository to sync.
+    ///
+    /// # Returns
+    ///
+    /// If the repository is successfully reset and synced with the origin, returns `SyncRepoResponse::Ok`
+    /// with a success message. If an error occurs during the process, returns `SyncRepoResponse::ServerError`
+    /// with an appropriate error message.
     ///
     #[oai(path = "/repo/:name/sync", method = "get")]
     pub async fn sync_repo_with_origin(&self, name: param::Path<String>) -> SyncRepoResponse {

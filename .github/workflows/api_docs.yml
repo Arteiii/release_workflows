@@ -1,0 +1,33 @@
+name: Generate Docs and Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Rust
+        uses: actions/setup-rust@v1
+
+      - name: Build and generate docs
+        run: cargo build --release && ./target/release/release_workflows.exe --static-docs
+
+      - name: Copy HTML files to GitHub Pages directory
+        run: |
+          mkdir -p docs
+          cp -R target/release/*.html docs/
+
+      - name: Commit and push changes to GitHub Pages
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/*
+          git commit -m "Update docs"
+          git push origin main

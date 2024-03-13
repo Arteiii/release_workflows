@@ -1,8 +1,10 @@
+use std::{env, fs::File, io::prelude::*, path::PathBuf, process};
+
 use color_eyre::eyre::{eyre, Result};
+use poem::{endpoint::StaticFilesEndpoint, EndpointExt, listener::TcpListener, Route};
 use poem::middleware::Cors;
-use poem::{endpoint::StaticFilesEndpoint, listener::TcpListener, EndpointExt, Route};
 use poem_openapi::OpenApiService;
-use tracing::{debug, error, info, subscriber::set_global_default, Level};
+use tracing::{debug, error, info, Level, subscriber::set_global_default};
 use tracing_subscriber::FmtSubscriber;
 
 use crate::api::routes::Api;
@@ -21,49 +23,67 @@ fn setup_tracing() {
 }
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // initialize logger
     setup_tracing();
-
-    // log startup event
     info!("Startup!");
 
     // install error handling
     color_eyre::install()?;
-
-    // log eyre installation
     debug!("Eyre installed");
 
     // base path for repositories
     let base_path = "E:/RepoTests/Repos";
 
-    // initialize API
-    let api_service: OpenApiService<Api, ()> =
-        OpenApiService::new(Api::new(base_path), "Git", "1.0").server("/api");
+    // Initialize API service
+    let api_service = OpenApiService::new(Api::new(base_path), "Git", "1.0").server("/api");
 
-    // initialize redoc and swagger
-    let redoc = api_service.redoc();
-    let swagger_ui = api_service.swagger_ui();
+    // check if --static-docs flag is provided
+    if let Some(arg) = env::args_os().nth(1) {
+        if arg == "--static-docs" {
+            // Generate the Swagger UI and Redoc HTML content
+            let swagger_ui_html_content = api_service.swagger_ui_html();
+            let redoc_html_content = api_service.redoc_html();
 
-    // define application routes
+            // Define the file paths for saving the HTML content
+            let swagger_ui_file_path = PathBuf::from("swagger_ui.html");
+            let redoc_file_path = PathBuf::from("redoc.html");
+
+            // Create a new file and write the Swagger UI HTML content to it
+            let mut swagger_file = File::create(&swagger_ui_file_path)?;
+            swagger_file.write_all(swagger_ui_html_content.as_bytes())?;
+
+            // Create a new file and write the Redoc HTML content to it
+            let mut redoc_file = File::create(&redoc_file_path)?;
+            redoc_file.write_all(redoc_html_content.as_bytes())?;
+
+            // Log the generation of Swagger UI and Redoc HTML files
+            info!("Swagger UI & Redoc HTML files generated");
+
+            // Exit the program
+            return Ok(());
+        }
+    }
+    
+    // Define application routes
     let app: Route = Route::new()
+        .nest("/redoc", api_service.redoc())
+        .nest("/docs", api_service.swagger_ui())
         .nest("/api", api_service)
-        .nest("/redoc", redoc)
         .nest(
             "/",
-            StaticFilesEndpoint::new("E:/RepoTests/Repos/")
+            StaticFilesEndpoint::new("./web/")
                 .show_files_listing()
                 .index_file("index.html"),
-        )
-        .nest("/docs", swagger_ui);
+        );
 
-    // run the server
+    // Run the server
     if let Err(err) = poem::Server::new(TcpListener::bind("0.0.0.0:8080"))
         .run(app.with(Cors::new()))
         .await
     {
         error!("Poem Server Error: {}", err);
-        return Err(eyre!("Poem Server Error: {}", err));
+        process::exit(1);
     }
 
     Ok(())

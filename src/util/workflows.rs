@@ -1,4 +1,4 @@
-use std::{fs, io, path::Path};
+use std::{fs, io};
 
 use poem_openapi::Object;
 
