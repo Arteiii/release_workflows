@@ -50,7 +50,7 @@ impl RepositoryManager {
     // }
 
     // that is sooo stupid but tbh I don!t know how else to "pull" / sync changes using git2
-    pub async fn reset_repository_using_origin(location: &str) -> Result<Repository, String> {
+    async fn reset_repository_using_origin(location: &str) -> Result<Repository, String> {
         // open the repository
         let repo = match Repository::open(location) {
             Ok(repo) => repo,
@@ -147,5 +147,20 @@ impl RepositoryManager {
             .collect();
 
         Ok(tag_infos)
+    }
+
+    pub async fn sync_repo(&self, path: &str) -> Result<(), String> {
+        match RepositoryManager::reset_repository_using_origin(&path).await {
+            Ok(_) => {
+                let msg = format!("reset/synced repo at {}", path);
+                tracing::info!("{}", msg);
+                Ok(())
+            }
+            Err(e) => {
+                let err_msg = format!("failed to reset repository ({})", e);
+                tracing::error!("{}", err_msg);
+                Err(err_msg)
+            }
+        }
     }
 }

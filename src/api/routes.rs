@@ -1,5 +1,6 @@
 use std::process::Command;
 
+use poem_openapi::payload::PlainText;
 use poem_openapi::{
     param,
     payload::Json,
@@ -67,6 +68,17 @@ pub enum BuildScriptsResponse {
     /// Successfully -> Created
     #[oai(status = 201)]
     Ok(Json<WorkflowScripts>),
+
+    /// Server Errors -> Failed Build Response Body For Details
+    #[oai(status = 500)]
+    ServerError(Json<String>),
+}
+
+#[derive(ApiResponse)]
+pub enum SyncRepoResponse {
+    /// Successfully -> Created
+    #[oai(status = 201)]
+    Ok(Json<String>),
 
     /// Server Errors -> Failed Build Response Body For Details
     #[oai(status = 500)]
@@ -330,6 +342,31 @@ impl Api {
                 let err_msg = format!("failed to get build scripts: {}", err);
                 error!(err_msg);
                 BuildScriptsResponse::ServerError(Json(err_msg))
+            }
+        }
+    }
+
+    /// sync repo with origin
+    ///
+    /// this deletes the local repo to clone it again from the origin
+    ///
+    /// as long as there are no local changes (as it should be) this is without risk
+    ///
+    #[oai(path = "/repo/:name/sync", method = "get")]
+    pub async fn sync_repo_with_origin(&self, name: param::Path<String>) -> SyncRepoResponse {
+        let repo_name = name.to_string();
+
+        let git_path = self.file_system.git_path(&repo_name);
+        debug!("syncing repo {} ", name.to_string());
+        match self.repo_manager.sync_repo(&git_path).await {
+            Ok(_) => {
+                let msg = format!("Reset/synced repo successfully ({})", name.to_string());
+                info!("{}", msg);
+                SyncRepoResponse::Ok(Json(msg))
+            }
+            Err(err_msg) => {
+                error!("{}", err_msg);
+                SyncRepoResponse::ServerError(Json(err_msg))
             }
         }
     }
