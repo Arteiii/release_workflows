@@ -1,17 +1,26 @@
 use color_eyre::eyre::{eyre, Result};
-use poem::{listener::TcpListener, Route};
+use poem::middleware::Cors;
+use poem::{listener::TcpListener, EndpointExt, Route};
 use poem_openapi::OpenApiService;
-use tracing::error;
+use tracing::{debug, error, info, subscriber::set_global_default, Level};
+use tracing_subscriber::FmtSubscriber;
 
 use crate::api::routes::Api;
 
 mod api;
 mod git;
 
+fn setup_tracing() {
+    let subscriber = FmtSubscriber::builder()
+        .with_max_level(Level::DEBUG)
+        .finish();
+    set_global_default(subscriber).expect("setting default subscriber failed");
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     // initialize logger
-    tracing_subscriber::fmt::init();
+    setup_tracing();
 
     // log startup event
     tracing::info!("Startup!");
@@ -23,12 +32,11 @@ async fn main() -> Result<()> {
     tracing::debug!("Eyre installed");
 
     // base path for repositories
-    let base_path = "/path/to/base/repositories";
+    let base_path = "E:/RepoTests/Repos";
 
     // initialize API
     let api_service: OpenApiService<Api, ()> =
-        OpenApiService::new(Api::new(base_path), "Hello World", "1.0")
-            .server("http://localhost:3000/api");
+        OpenApiService::new(Api::new(base_path), "Git", "1.0").server("/api");
 
     // initialize redoc and swagger
     let redoc = api_service.redoc();
@@ -42,7 +50,7 @@ async fn main() -> Result<()> {
 
     // run the server
     if let Err(err) = poem::Server::new(TcpListener::bind("0.0.0.0:3000"))
-        .run(app)
+        .run(app.with(Cors::new()))
         .await
     {
         error!("Poem Server Error: {}", err);
