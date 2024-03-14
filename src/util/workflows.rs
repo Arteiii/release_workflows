@@ -25,28 +25,32 @@ impl WorkflowScripts {
         self.script = exists;
     }
 
-    fn has_makefile(&self) -> bool {
+    pub fn has_makefile(&self) -> bool {
         self.makefile
     }
 
-    fn has_script(&self) -> bool {
+    pub fn has_script(&self) -> bool {
         self.script
+    }
+
+    pub fn get_makefile_path(path: &str) -> String {
+        format!("{}/workflows/make/Makefile", path)
+    }
+    pub fn get_script_path(path: &str) -> String {
+        format!("{}/workflows/script/build_script.sh", path)
     }
 }
 
 pub fn workflows_exist(path: &str) -> Result<WorkflowScripts, io::Error> {
-    let makefile_path = format!("{}/workflows/make/Makefile", path);
-    let script_path = format!("{}/workflows/script/build_script.sh", path);
-
     let mut scripts = WorkflowScripts::new();
 
-    if let Ok(metadata) = fs::metadata(&makefile_path) {
+    if let Ok(metadata) = fs::metadata(&WorkflowScripts::get_makefile_path(path)) {
         if metadata.is_file() {
             scripts.set_makefile(true);
         }
     }
 
-    if let Ok(metadata) = fs::metadata(&script_path) {
+    if let Ok(metadata) = fs::metadata(&WorkflowScripts::get_script_path(path)) {
         if metadata.is_file() {
             scripts.set_script(true);
         }

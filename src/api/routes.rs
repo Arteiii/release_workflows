@@ -219,43 +219,41 @@ impl Api {
         let repo_name = name.to_string();
         let method = method.to_string();
 
-        let git_path = &self.file_system.git_path(&repo_name);
+        let repo_path = &self.file_system.git_path(&repo_name);
 
-        // if !self.file_system.release_workflow_exists(&git_path) {
-        //     let msg = format!("The release_workflow folder does not exist ({})", &git_path);
-        //     error!(msg);
-        //     return BuildRepo::ServerError(Json(msg.to_string()));
-        // }
-
-        // validate the method
+        // Validate the method
         if !["make", "script", "cargo", "docker"].contains(&method.as_str()) {
             let err_msg = format!("Invalid build method: {}", method);
             error!(err_msg);
-
             return BuildRepo::ServerError(Json(err_msg));
         }
 
-        let (file_name, content) = match method.as_str() {
-            "make" => (
-                format!("{}.Makefile", &repo_name),
-                make::generate_makefile(&repo_name).await,
-            ),
-            "script" => (
-                format!("{}.sh", &repo_name),
-                script::generate_script(&repo_name).await,
-            ),
-            _ => (String::new(), String::new()), // for cargo/docker, no file or content is needed
+        // Check if the repository has the required build scripts
+        let script_data = match workflows_exist(&repo_path) {
+            Ok(script_data) => script_data,
+            Err(err) => {
+                let err_msg = format!("Failed to get build scripts: {}", err);
+                error!(err_msg);
+                return BuildRepo::ServerError(Json(err_msg));
+            }
         };
 
-        // write file to disk if needed
-        // if !file_name.is_empty() && !content.is_empty() {
-        //     if let Err(e) = write_to_file(&file_name, &content).wait {
-        //         error!("Failed to write file: {}", e);
-        //         BuildRepo::ServerError(Json(e));
-        //     }
-        // }
+        // Check if the specified method is available
+        match method.as_str() {
+            "make" if !script_data.has_makefile() => {
+                let err_msg = "Makefile not found in the repository".to_string();
+                error!(err_msg);
+                return BuildRepo::ServerError(Json(err_msg));
+            }
+            "script" if !script_data.has_script() => {
+                let err_msg = "Build script not found in the repository".to_string();
+                error!(err_msg);
+                return BuildRepo::ServerError(Json(err_msg));
+            }
+            _ => (),
+        }
 
-        // execute build process based on the method
+        // Execute the build process based on the method
         match method.as_str() {
             "cargo" => {
                 let cargo_build_output = Command::new("cargo")
@@ -269,11 +267,9 @@ impl Api {
                     return BuildRepo::ServerError(Json(err_msg));
                 }
             }
-
             "make" => {
-                let make_build_output = Command::new("make")
-                    .output()
-                    .map_err(|e| format!("Failed to execute make command: {}", e));
+                let make_build_output =
+                    make::execute_makefile(&WorkflowScripts::get_makefile_path(&repo_path)).await;
 
                 if let Err(e) = make_build_output {
                     let err_msg = format!("Make build failed: {}", e);
@@ -281,7 +277,6 @@ impl Api {
                     return BuildRepo::ServerError(Json(err_msg));
                 }
             }
-
             "script" => {
                 let script_build_output = Command::new("sh")
                     .arg("./script/build_script.sh")
@@ -294,8 +289,7 @@ impl Api {
                     return BuildRepo::ServerError(Json(err_msg));
                 }
             }
-
-            // TODO: add docker support
+            // TODO: Add docker support
             // "docker" => {
             //     let docker_manager = docker::DockerManager::new("");
             //
@@ -315,7 +309,6 @@ impl Api {
 
         BuildRepo::Ok(Json(msg))
     }
-
     /// Retrieves the available build scripts for a repository.
     ///
     /// This endpoint is designed as support for the `/repo/:name/build/:method` endpoint.
