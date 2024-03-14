@@ -26,10 +26,10 @@ jobs:
           tree -L 1
 
       - name: Mark executable
-        run: chmod +x ./release_workflows.exe
+        run: chmod +x ./release_workflows
 
       - name: Generate Docs
-        run: ./release_workflows.exe --static-docs
+        run: ./release_workflows --static-docs
 
       - name: Copy HTML files to GitHub Pages directory
         run: |
