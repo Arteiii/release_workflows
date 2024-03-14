@@ -1,4 +1,4 @@
-# [Release Workflows](https://github.com/Arteiii/release_workflows)
+# Read Me
 
 Tested on WSL2 Ubuntu 22.04.3 LTS.
 
@@ -6,7 +6,7 @@ Tested on WSL2 Ubuntu 22.04.3 LTS.
 
 Rust is required for building the project. You can find the installer [here](https://www.rust-lang.org/tools/install).
 
-If you don't want to build it yourself, you can download the compiled executable from the GitHub release page.
+If you dont want to build it yourself, you can download the compiled executable from the GitHub release page.
 
 - **NOTE:** To generate static documentation, run the following command:
    ```bash
@@ -18,73 +18,52 @@ If you don't want to build it yourself, you can download the compiled executable
 - Initialize and manage Git repositories using `git2`.
 - Expose Git operations as HTTP endpoints with Poem.
 
-## Project Structure
-
-```bash
-root/
-│
-├── src/
-│ ├── main.rs
-│ │
-│ ├── git/
-│ │ ├── mod.rs
-│ │ └── ...
-│ │
-│ ├── api/
-│ │ ├── mod.rs
-│ │ └── ...
-│ │
-│ └── util/
-│ ├── mod.rs
-│ └── ...
-│
-├── .env
-├── Cargo.toml
-├── LICENSE
-└── README.md
-```
-
 ## Compiling the Project on Debian and Ubuntu 22.04.3 LTS
 
 To compile the project on Debian and Ubuntu 22.04.3 LTS, follow these steps:
 
-1. Update the package manager:
+Update the package manager:
+
    ```bash
    sudo apt update
    ```
 
-2. Install `pkg-config`, `GCC`,  `make` and `libssl-dev`:
-    ```bash
-    sudo apt install pkg-config gcc make libssl-dev
-    ```
+Install `pkg-config`, `GCC`,  `make` and `libssl-dev`:
 
-3. Install Rust by following the instructions [here](https://rustup.rs/).
+```bash
+sudo apt install pkg-config gcc make libssl-dev
+```
 
-4. Clone the repository:
-    ```bash
-    git clone https://github.com/your_username/release_workflows.git
-    ```
+Install Rust by following the instructions [here](https://rustup.rs/).
 
-5. Navigate to the project directory:
-    ```bash
-    cd release_workflows
-    ```
+Clone the repository:
 
-6. Build the project:
-    ```bash
-    cargo build --release
-    ```
+```bash
+git clone https://github.com/your_username/release_workflows.git
+```
+
+Navigate to the project directory:
+
+```bash
+cd release_workflows
+```
+
+Build the project:
+
+```bash
+cargo build --release
+```
 
 If the build is successful, you will find the compiled executable in the target/release directory
 
 ## Contributing
 
-If you'd like to contribute to this project, please follow these guidelines:
+If youd like to contribute to this project, please follow these guidelines:
 
 - Fork the repository.
-- Create a new branch: git checkout -b feature/my-feature.
-- Make your changes and commit them: git commit -m 'Add new feature'.
-- Push to the branch: git push origin feature/my-feature.
+- Create a new branch: `git checkout -b feature/my-feature`.
+- Make your changes and commit them: `git commit -m "Add new feature"`.
+- Push to the branch: `git push origin feature/my-feature`.
 - Submit a pull request.
 
 ## LICENSE

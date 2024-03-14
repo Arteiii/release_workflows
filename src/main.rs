@@ -1,8 +1,8 @@
-use std::{env, fs::File, io::prelude::*, path::PathBuf, process};
+use std::{env, fs::File, io::prelude::*, process};
 
-use color_eyre::eyre::{eyre, Result};
+use color_eyre::eyre::Result;
 use handlebars::Handlebars;
-use poem::{endpoint::StaticFilesEndpoint, listener::TcpListener, EndpointExt, Route};
+use poem::{endpoint::StaticFilesEndpoint, listener::TcpListener, Route};
 use poem_openapi::OpenApiService;
 use pulldown_cmark::{html, Options, Parser};
 use tracing::{debug, error, info, subscriber::set_global_default, Level};
@@ -101,12 +101,18 @@ fn generate_static_docs(api_service: &OpenApiService<Api, ()>, api_name: &str) -
     let mut license_file = File::create("license.html")?;
     license_file.write_all(license_html_content.as_bytes())?;
 
+    // Read the content of README.md
+    let readme_content = include_str!("../README.md");
+    // Convert README Markdown to HTML
+    let readme_html_content = markdown_to_html_with_line_breaks(readme_content)?;
+
     // Generate the HTML content from the template
     let html_template = include_str!("web/index_template.html");
     let mut handlebars = Handlebars::new();
     handlebars.register_template_string("index_template", html_template)?;
     let mut data = std::collections::BTreeMap::new();
     data.insert("api_name", api_name);
+    data.insert("readme", &readme_html_content);
     let html_content = handlebars.render("index_template", &data)?;
 
     // Write the rendered HTML content to the index.html file
@@ -118,7 +124,6 @@ fn generate_static_docs(api_service: &OpenApiService<Api, ()>, api_name: &str) -
     Ok(())
 }
 
-/// Convert Markdown to HTML
 /// Convert Markdown to HTML with preserved line breaks
 fn markdown_to_html_with_line_breaks(markdown: &str) -> Result<String> {
     let parser = Parser::new_ext(markdown, Options::all());

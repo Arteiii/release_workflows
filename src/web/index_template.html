@@ -7,10 +7,14 @@
             font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: center; /* Center content horizontally */
             justify-content: center;
-            height: 100vh;
+            min-height: 150vh; /* Set minimum height to occupy full viewport */
             margin: 0;
+        }
+
+        h1 {
+            margin-top: 120px; /* Adjust the spacing as needed */
         }
 
         .button-container {
@@ -61,6 +65,63 @@
             background-color: white;
             color: #007bff;
         }
+
+        .read-me-section {
+            margin-top: 150px;
+            color: #333;
+            width: 80%;
+            text-align: left;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .read-me-content {
+            margin-top: 10px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .read-me-content pre {
+            background-color: #f4f4f4;
+            border-left: 3px solid #ccc;
+            padding: 10px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .read-me-content h2 {
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        .read-me-content ul,
+        .read-me-content ol {
+            margin-top: 5px;
+            margin-bottom: 5px;
+            margin-left: 20px;
+            display: inline;
+            list-style-position: inside;
+        }
+
+        .read-me-content blockquote {
+            margin-left: 20px;
+            border-left: 3px solid #007bff;
+            padding-left: 10px;
+            color: #666;
+            font-style: italic;
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+
+        .read-me-content li {
+            margin-bottom: 5px;
+        }
+
+        .read-me-content p {
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
@@ -73,5 +134,12 @@
 <div class="license-button-container button-container">
     <a href="license.html" class="license-button">License (AGPL-3.0)</a>
 </div>
+
+<div class="read-me-section">
+    <div class="read-me-content">
+        {{{readme}}}
+    </div>
+</div>
+
 </body>
 </html>
