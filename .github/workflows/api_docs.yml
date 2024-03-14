@@ -21,31 +21,36 @@ jobs:
       - name: Build
         run: cargo build --release
 
-
       - name: Mark executable
         run: |
           find . -type f -name "release_workflows" -exec chmod +x {} \;
 
       - name: Generate Docs
         run: |
-          cd ./target/release/
+          cd target/release
           ./release_workflows --static-docs
 
       - name: Change directory and show files
         run: |
-          cd ./target/release/
+          cd target/release
           ls
 
       - name: Copy HTML files to GitHub Pages directory
         run: |
           mkdir -p docs
-          cp -R  ./target/release/*.html docs/
+          cp -R *.html ../../docs/
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          git diff --exit-code || echo "::set-output name=changed::true"
+          git diff --cached --exit-code || echo "::set-output name=changed::true"
 
       - name: Commit and push changes to GitHub Pages
+        if: steps.check_changes.outputs.changed == 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git checkout main
-          git add docs/*
-          git commit -m "Update docs"
+          git add -A
+          git commit -m "Update docs" || exit 0
           git push origin main
