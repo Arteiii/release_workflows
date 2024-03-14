@@ -5,6 +5,7 @@ use handlebars::Handlebars;
 use poem::middleware::Cors;
 use poem::{endpoint::StaticFilesEndpoint, listener::TcpListener, EndpointExt, Route};
 use poem_openapi::OpenApiService;
+use pulldown_cmark::{html, Options, Parser};
 use tracing::{debug, error, info, subscriber::set_global_default, Level};
 use tracing_subscriber::FmtSubscriber;
 
@@ -34,6 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     debug!("Eyre installed");
 
     // Base path for repositories
+    // TODO: just for testing change for release
     let base_path = "E:/RepoTests/Repos";
 
     let api_name = "Git";
@@ -60,6 +62,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut redoc_file = File::create(&redoc_file_path)?;
             redoc_file.write_all(redoc_html_content.as_bytes())?;
 
+            // Convert Installation instructions Markdown to HTML
+            let installation_md_content = include_str!("../Installation.md");
+            let installation_html_content = markdown_to_html(installation_md_content)?;
+
+            // Write the rendered HTML content to the installation.html file
+            let mut installation_file = File::create("installation.html")?;
+            installation_file.write_all(installation_html_content.as_bytes())?;
+
             // Generate the HTML content from the template
             let html_template = include_str!("web/index_template.html");
             let mut handlebars = Handlebars::new();
@@ -72,8 +82,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut file = File::create("index.html")?;
             file.write_all(html_content.as_bytes())?;
 
-            // Log the generation of Swagger UI and Redoc HTML files
-            info!("Swagger UI & Redoc HTML files generated");
+            // Log the generation of Swagger UI, Redoc HTML files, and Installation HTML file
+            info!("Swagger UI & Redoc HTML files and Installation HTML file generated");
 
             // Exit the program
             return Ok(());
@@ -102,4 +112,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
+}
+
+/// Convert Markdown to HTML
+fn markdown_to_html(markdown: &str) -> Result<String> {
+    let parser = Parser::new_ext(markdown, Options::all());
+    let mut html_output = String::new();
+    html::push_html(&mut html_output, parser);
+    Ok(html_output)
 }
