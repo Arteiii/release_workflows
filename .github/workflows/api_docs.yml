@@ -38,7 +38,7 @@ jobs:
       - name: Copy HTML files to GitHub Pages directory
         run: |
           mkdir -p docs
-          cp -R *.html ../../docs/
+          cp -R  ./target/release/*.html docs/
 
       - name: Check for changes
         id: check_changes
