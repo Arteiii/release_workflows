@@ -31,14 +31,13 @@ jobs:
           find . -type f -name "release_workflows" -exec chmod +x {} \;
 
       - name: Generate Docs
-        run: |
-          ls
-          ./release_workflows --static-docs
+        run: ./target/release/release_workflows --static-docs
+
 
       - name: Copy HTML files to GitHub Pages directory
         run: |
           mkdir -p docs
-          cp -R ./*.html docs/
+          cp -R  ./target/release/*.html docs/
 
       - name: Commit and push changes to GitHub Pages
         run: |
