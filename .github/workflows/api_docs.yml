@@ -27,7 +27,9 @@ jobs:
           find . -type f -name "release_workflows" -exec chmod +x {} \;
 
       - name: Generate Docs
-        run: ./target/release/release_workflows --static-docs
+        run: |
+          cd ./target/release/
+          ./release_workflows --static-docs
 
       - name: Change directory and show files
         run: |
