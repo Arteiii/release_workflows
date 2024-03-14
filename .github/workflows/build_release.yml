@@ -46,6 +46,13 @@ jobs:
       - name: Set up Git
         run: git fetch --tags
 
+      - name: Load environment variables from .env file
+        run: |
+          set -a
+          source .env
+          set +a
+        working-directory: ${{ github.workspace }}
+
       - name: Get commit messages since last tag
         id: commit_messages
         run: |
