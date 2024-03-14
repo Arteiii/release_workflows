@@ -41,6 +41,11 @@ jobs:
           mkdir -p docs
           cp -R  ./target/release/*.html docs/
 
+      - name: Create gh-pages branch if it doesn't exist
+        run: |
+          git fetch origin gh-pages:gh-pages || git checkout -b gh-pages
+          git branch
+
       - name: Commit and push changes to GitHub Pages
         run: |
           git config --local user.email "action@github.com"
