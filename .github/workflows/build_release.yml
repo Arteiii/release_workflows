@@ -1,0 +1,74 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y zip
+
+      - name: Build project
+        run: cargo build --release
+
+      - name: Bundle artifacts
+        run: |
+          mkdir -p dist
+          cp README.md LICENSE Installation.md dist/
+          cp target/release/release_workflows dist/
+          cd dist
+          zip -r release_workflows.zip .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: release-workflows
+          path: dist/
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Git
+        run: git fetch --tags
+
+      - name: Display release version
+        run: |
+          echo "Release version: ${{ env.TAG }}"
+
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: release-workflows
+          path: dist/
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.TAG }}
+          name: "Release ${{ env.TAG }}"
+          body: |
+            ## Setup Instructions:
+            - Please refer to Installation.md for setup instructions.
+            
+            ## License:
+            - See LICENSE file for license information.
+          files: |
+            dist/release_workflows.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
+          append_body: true

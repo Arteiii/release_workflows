@@ -1,4 +1,4 @@
-# Release Workflows
+# [Release Workflows](https://github.com/Arteiii/release_workflows)
 
 Tested on WSL2 Ubuntu 22.04.3 LTS.
 
@@ -15,6 +15,7 @@ If you don't want to build it yourself, you can download the compiled executable
 
 ## Project Structure
 
+```bash
 root/
 │
 ├── src/
@@ -36,9 +37,7 @@ root/
 ├── Cargo.toml
 ├── LICENSE
 └── README.md
-
-perl
-Copy code
+```
 
 ## Compiling the Project on Debian and Ubuntu 22.04.3 LTS
 
