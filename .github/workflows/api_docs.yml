@@ -23,7 +23,7 @@ jobs:
         run: |
           cd ./target/release
           pwd
-          tree -L 2
+          tree -L 1
 
       - name: Mark executable
         run: chmod +x ./release_workflows.exe
