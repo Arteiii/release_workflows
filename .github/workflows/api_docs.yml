@@ -21,15 +21,15 @@ jobs:
 
       - name: Change directory and show files
         run: |
-          cd ./target/release
+          cd ./target/release/
           pwd
           tree -L 1
 
       - name: Mark executable
-        run: chmod +x ./release_workflows
+        run: chmod +x release_workflows
 
       - name: Generate Docs
-        run: ./release_workflows --static-docs
+        run: release_workflows --static-docs
 
       - name: Copy HTML files to GitHub Pages directory
         run: |
