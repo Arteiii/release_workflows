@@ -46,6 +46,13 @@ jobs:
       - name: Set up Git
         run: git fetch --tags
 
+      - name: Get commit messages since last tag
+        id: commit_messages
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0)
+          COMMIT_MSGS=$(git log --pretty=format:"- %s" ${PREVIOUS_TAG}..HEAD)
+          echo "::set-output name=messages::$COMMIT_MSGS"
+
       - name: Display release version
         run: |
           echo "Release version: ${{ env.TAG }}"
@@ -63,14 +70,17 @@ jobs:
           tag_name: ${{ env.TAG }}
           name: "Release ${{ env.TAG }}"
           body: |
-            ## Setup Instructions & License Information:
+            ## Patch notes
+            ${{ steps.commit_messages.outputs.messages }}
+            
+            ## Setup Instructions & License Information
             - Please refer to Installation.md for setup instructions and LICENSE file for license information. 
               These files can be found in the release_workflows.zip archive. (You can unpack the release_workflows.zip file using any zip utility.)
             
-            ## Testing and Feedback:
+            ## Testing and Feedback
             - This release has been tested on WSL2 Debian & Ubuntu 22.04.3 LTS and Windows environments.  
               While efforts have been made to ensure compatibility across various systems,  
-              if you encounter any errors, bugs, or have suggestions for improvements, please don't hesitate to report them.  
+              if you encounter any errors, bugs, or have suggestions for improvements, please don't hesitate to report them.
           files: |
             dist/release_workflows.zip
           token: ${{ secrets.GITHUB_TOKEN }}
