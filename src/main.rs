@@ -2,7 +2,6 @@ use std::{env, fs::File, io::prelude::*, path::PathBuf, process};
 
 use color_eyre::eyre::{eyre, Result};
 use handlebars::Handlebars;
-use poem::middleware::Cors;
 use poem::{endpoint::StaticFilesEndpoint, listener::TcpListener, EndpointExt, Route};
 use poem_openapi::OpenApiService;
 use pulldown_cmark::{html, Options, Parser};
@@ -35,7 +34,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     debug!("Eyre installed");
 
     // Base path for repositories
-    // TODO: just for testing change for release
     let base_path = "E:/RepoTests/Repos";
 
     let api_name = "Git";
@@ -46,46 +44,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Check if --static-docs flag is provided
     if let Some(arg) = env::args_os().nth(1) {
         if arg == "--static-docs" {
-            // Generate the Swagger UI and Redoc HTML content
-            let swagger_ui_html_content = api_service.swagger_ui_html();
-            let redoc_html_content = api_service.redoc_html();
-
-            // Define the file paths for saving the HTML content
-            let swagger_ui_file_path = PathBuf::from("swagger_ui.html");
-            let redoc_file_path = PathBuf::from("redoc.html");
-
-            // Create a new file and write the Swagger UI HTML content to it
-            let mut swagger_file = File::create(&swagger_ui_file_path)?;
-            swagger_file.write_all(swagger_ui_html_content.as_bytes())?;
-
-            // Create a new file and write the Redoc HTML content to it
-            let mut redoc_file = File::create(&redoc_file_path)?;
-            redoc_file.write_all(redoc_html_content.as_bytes())?;
-
-            // Convert Installation instructions Markdown to HTML
-            let installation_md_content = include_str!("../Installation.md");
-            let installation_html_content = markdown_to_html(installation_md_content)?;
-
-            // Write the rendered HTML content to the installation.html file
-            let mut installation_file = File::create("installation.html")?;
-            installation_file.write_all(installation_html_content.as_bytes())?;
-
-            // Generate the HTML content from the template
-            let html_template = include_str!("web/index_template.html");
-            let mut handlebars = Handlebars::new();
-            handlebars.register_template_string("index_template", html_template)?;
-            let mut data = std::collections::BTreeMap::new();
-            data.insert("api_name", api_name);
-            let html_content = handlebars.render("index_template", &data)?;
-
-            // Write the rendered HTML content to the index.html file
-            let mut file = File::create("index.html")?;
-            file.write_all(html_content.as_bytes())?;
-
-            // Log the generation of Swagger UI, Redoc HTML files, and Installation HTML file
-            info!("Swagger UI & Redoc HTML files and Installation HTML file generated");
-
-            // Exit the program
+            generate_static_docs(&api_service, api_name)?;
             return Ok(());
         }
     }
@@ -104,7 +63,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Run the server
     if let Err(err) = poem::Server::new(TcpListener::bind("0.0.0.0:8080"))
-        .run(app.with(Cors::new()))
+        .run(app)
         .await
     {
         error!("Poem Server Error: {}", err);
@@ -114,10 +73,56 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+/// Generate static documentation files
+fn generate_static_docs(api_service: &OpenApiService<Api, ()>, api_name: &str) -> Result<()> {
+    // Generate the Swagger UI and Redoc HTML content
+    let swagger_ui_html_content = api_service.swagger_ui_html();
+    let redoc_html_content = api_service.redoc_html();
+
+    // Write the Swagger UI HTML content to file
+    let mut swagger_file = File::create("swagger_ui.html")?;
+    swagger_file.write_all(swagger_ui_html_content.as_bytes())?;
+
+    // Write the Redoc HTML content to file
+    let mut redoc_file = File::create("redoc.html")?;
+    redoc_file.write_all(redoc_html_content.as_bytes())?;
+
+    // Convert Installation instructions Markdown to HTML
+    let installation_md_content = include_str!("../Installation.md");
+    let installation_html_content = markdown_to_html_with_line_breaks(installation_md_content)?;
+    // Write the Installation HTML content to file
+    let mut installation_file = File::create("installation.html")?;
+    installation_file.write_all(installation_html_content.as_bytes())?;
+
+    // Convert License Markdown to HTML
+    let license_md_content = include_str!("../LICENSE.md");
+    let license_html_content = markdown_to_html_with_line_breaks(license_md_content)?;
+    // Write the License HTML content to file
+    let mut license_file = File::create("license.html")?;
+    license_file.write_all(license_html_content.as_bytes())?;
+
+    // Generate the HTML content from the template
+    let html_template = include_str!("web/index_template.html");
+    let mut handlebars = Handlebars::new();
+    handlebars.register_template_string("index_template", html_template)?;
+    let mut data = std::collections::BTreeMap::new();
+    data.insert("api_name", api_name);
+    let html_content = handlebars.render("index_template", &data)?;
+
+    // Write the rendered HTML content to the index.html file
+    let mut file = File::create("index.html")?;
+    file.write_all(html_content.as_bytes())?;
+
+    info!("Static documentation files generated");
+
+    Ok(())
+}
+
 /// Convert Markdown to HTML
-fn markdown_to_html(markdown: &str) -> Result<String> {
+/// Convert Markdown to HTML with preserved line breaks
+fn markdown_to_html_with_line_breaks(markdown: &str) -> Result<String> {
     let parser = Parser::new_ext(markdown, Options::all());
     let mut html_output = String::new();
     html::push_html(&mut html_output, parser);
-    Ok(html_output)
+    Ok(html_output.replace("\n", "<br>")) // replace newline characters with <br> tags
 }

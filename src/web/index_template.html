@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
     <title>{{api_name}}</title>
@@ -12,40 +13,65 @@
             margin: 0;
         }
 
+        .button-container {
+            display: flex;
+            justify-content: center;
+            width: 60%;
+            margin-top: 5px;
+        }
+
         .button {
-            padding: 20px 40px;
-            font-size: 18px;
-            margin: 10px;
-            border: none;
-            cursor: pointer;
+            padding: 15px 30px;
+            font-size: 16px;
+            margin: 5px;
+            border: 2px solid #007bff;
             border-radius: 8px;
             background-color: #007bff;
             color: white;
             text-align: center;
             text-decoration: none;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, color 0.3s;
+            cursor: pointer;
         }
 
         .button:hover {
-            background-color: #0056b3;
+            background-color: white;
+            color: #007bff;
         }
 
-        .github-logo {
-            width: 40px;
-            height: 40px;
-            margin-top: 20px;
+        .license-button-container {
+            margin-top: 4em;
+        }
+
+        .license-button {
+            padding: 8px 20px;
+            font-size: 14px;
+            margin: 5px;
+            border: 1px solid #007bff;
+            border-radius: 8px;
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            transition: background-color 0.3s, color 0.3s;
             cursor: pointer;
+        }
+
+        .license-button:hover {
+            background-color: white;
+            color: #007bff;
         }
     </style>
 </head>
 <body>
 <h1>Welcome to {{api_name}} API Documentation</h1>
-<a href="installation.html" class="button">Installation</a>
-<a href="redoc.html" class="button">Redoc</a>
-<a href="swagger_ui.html" class="button">Swagger UI</a>
-<a href="https://github.com/Arteiii/release_workflows" target="_blank">
-    <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Logo.png" alt="GitHub Logo"
-         class="github-logo">
-</a>
+<div class="button-container">
+    <a href="installation.html" class="button">Installation</a>
+    <a href="redoc.html" class="button">Redoc</a>
+    <a href="swagger_ui.html" class="button">Swagger UI</a>
+</div>
+<div class="license-button-container button-container">
+    <a href="license.html" class="license-button">License (AGPL-3.0)</a>
+</div>
 </body>
 </html>
