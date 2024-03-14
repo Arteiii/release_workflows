@@ -7,10 +7,14 @@
             font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: center; /* Center content horizontally */
             justify-content: center;
-            height: 100vh;
+            min-height: 150vh; /* Set minimum height to occupy full viewport */
             margin: 0;
+        }
+
+        h1 {
+            margin-top: 120px; /* Adjust the spacing as needed */
         }
 
         .button-container {
@@ -61,6 +65,63 @@
             background-color: white;
             color: #007bff;
         }
+
+        .read-me-section {
+            margin-top: 150px;
+            color: #333;
+            width: 80%;
+            text-align: left;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .read-me-content {
+            margin-top: 10px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .read-me-content pre {
+            background-color: #f4f4f4;
+            border-left: 3px solid #ccc;
+            padding: 10px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .read-me-content h2 {
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        .read-me-content ul,
+        .read-me-content ol {
+            margin-top: 5px;
+            margin-bottom: 5px;
+            margin-left: 20px;
+            display: inline;
+            list-style-position: inside;
+        }
+
+        .read-me-content blockquote {
+            margin-left: 20px;
+            border-left: 3px solid #007bff;
+            padding-left: 10px;
+            color: #666;
+            font-style: italic;
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+
+        .read-me-content li {
+            margin-bottom: 5px;
+        }
+
+        .read-me-content p {
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
@@ -73,5 +134,12 @@
 <div class="license-button-container button-container">
     <a href="license.html" class="license-button">License (AGPL-3.0)</a>
 </div>
+
+<div class="read-me-section">
+    <div class="read-me-content">
+        <h1>Read Me</h1><br><p>Tested on WSL2 Ubuntu 22.04.3 LTS.</p><br><p><code>pkg-config</code> and <code>GCC</code> might be needed to build on Linux.</p><br><p>Rust is required for building the project. You can find the installer <a href="https://www.rust-lang.org/tools/install">here</a>.</p><br><p>If you dont want to build it yourself, you can download the compiled executable from the GitHub release page.</p><br><ul><br><li><strong>NOTE:</strong> To generate static documentation, run the following command:<br><pre><code class="language-bash">cargo run --release -- --static-docs<br></code></pre><br></li><br></ul><br><h2>Features</h2><br><ul><br><li>Initialize and manage Git repositories using <code>git2</code>.</li><br><li>Expose Git operations as HTTP endpoints with Poem.</li><br></ul><br><h2>Compiling the Project on Debian and Ubuntu 22.04.3 LTS</h2><br><p>To compile the project on Debian and Ubuntu 22.04.3 LTS, follow these steps:</p><br><p>Update the package manager:</p><br><pre><code class="language-bash">sudo apt update<br></code></pre><br><p>Install <code>pkg-config</code>, <code>GCC</code>,  <code>make</code> and <code>libssl-dev</code>:</p><br><pre><code class="language-bash">sudo apt install pkg-config gcc make libssl-dev<br></code></pre><br><p>Install Rust by following the instructions <a href="https://rustup.rs/">here</a>.</p><br><p>Clone the repository:</p><br><pre><code class="language-bash">git clone https://github.com/your_username/release_workflows.git<br></code></pre><br><p>Navigate to the project directory:</p><br><pre><code class="language-bash">cd release_workflows<br></code></pre><br><p>Build the project:</p><br><pre><code class="language-bash">cargo build --release<br></code></pre><br><p>If the build is successful, you will find the compiled executable in the target/release directory</p><br><h2>Contributing</h2><br><p>If youd like to contribute to this project, please follow these guidelines:</p><br><ul><br><li>Fork the repository.</li><br><li>Create a new branch: <code>git checkout -b feature/my-feature</code>.</li><br><li>Make your changes and commit them: <code>git commit -m "Add new feature"</code>.</li><br><li>Push to the branch: <code>git push origin feature/my-feature</code>.</li><br><li>Submit a pull request.</li><br></ul><br><h2>LICENSE</h2><br><p>This project is licensed under the AGPL-3.0 <a href="LICENSE">License</a>.</p><br>
+    </div>
+</div>
+
 </body>
 </html>
