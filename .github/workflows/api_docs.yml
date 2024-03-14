@@ -21,9 +21,9 @@ jobs:
 
       - name: Change directory and show files
         run: |
-          cd ./target/release/
+          cd ./target/release
           pwd
-          tree
+          tree -L 2
 
       - name: Mark executable
         run: chmod +x ./release_workflows.exe
