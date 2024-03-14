@@ -21,10 +21,6 @@ jobs:
       - name: Build
         run: cargo build --release
 
-      - name: Change directory and show files
-        run: |
-          cd ./target/release/
-          ls
 
       - name: Mark executable
         run: |
@@ -33,6 +29,10 @@ jobs:
       - name: Generate Docs
         run: ./target/release/release_workflows --static-docs
 
+      - name: Change directory and show files
+        run: |
+          cd ./target/release/
+          ls
 
       - name: Copy HTML files to GitHub Pages directory
         run: |
