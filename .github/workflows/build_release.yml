@@ -63,11 +63,14 @@ jobs:
           tag_name: ${{ env.TAG }}
           name: "Release ${{ env.TAG }}"
           body: |
-            ## Setup Instructions:
-            - Please refer to Installation.md for setup instructions.
+            ## Setup Instructions & License Information:
+            - Please refer to Installation.md for setup instructions and LICENSE file for license information. 
+              These files can be found in the release_workflows.zip archive. (You can unpack the release_workflows.zip file using any zip utility.)
             
-            ## License:
-            - See LICENSE file for license information.
+            ## Testing and Feedback:
+            - This release has been tested on WSL2 Debian & Ubuntu 22.04.3 LTS and Windows environments.  
+              While efforts have been made to ensure compatibility across various systems,  
+              if you encounter any errors, bugs, or have suggestions for improvements, please don't hesitate to report them.  
           files: |
             dist/release_workflows.zip
           token: ${{ secrets.GITHUB_TOKEN }}
