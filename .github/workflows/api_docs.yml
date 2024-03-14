@@ -14,7 +14,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Set up Rust
-        uses: moonrepo/setup-rust@v1
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
 
       - name: Build
         run: cargo build --release
@@ -26,7 +28,8 @@ jobs:
           tree -L 1
 
       - name: Mark executable
-        run: chmod +x release_workflows
+        run: |
+          find . -type f -name "release_workflows" -exec chmod +x {} \;
 
       - name: Generate Docs
         run: release_workflows --static-docs
