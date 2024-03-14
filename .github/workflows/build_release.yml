@@ -24,7 +24,7 @@ jobs:
       - name: Bundle artifacts
         run: |
           mkdir -p dist
-          cp README.md LICENSE Installation.md dist/
+          cp README.md LICENSE.md Installation.md dist/
           cp target/release/release_workflows dist/
           cd dist
           zip -r release_workflows.zip .

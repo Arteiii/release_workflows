@@ -8,6 +8,11 @@ Rust is required for building the project. You can find the installer [here](htt
 
 If you don't want to build it yourself, you can download the compiled executable from the GitHub release page.
 
+- **NOTE:** To generate static documentation, run the following command:
+   ```bash
+   cargo run --release -- --static-docs
+   ```
+
 ## Features
 
 - Initialize and manage Git repositories using `git2`.
