@@ -8,6 +8,7 @@ use poem_openapi::{
 };
 use tracing::{debug, error, info};
 
+use crate::build::docker::DockerManager;
 use crate::build::{make, script};
 use crate::git::manager::RepositoryManager as Repo;
 use crate::util::file_system::FileSystem;
@@ -106,29 +107,6 @@ impl Api {
         }
     }
 
-    /// Create a new Repository
-    ///
-    /// create new repo
-    //
-    //
-    // removed for now
-    // #[oai(path = "/repo/:name/create", method = "post")]
-    // pub async fn create_repository(&self, name: param::Path<String>) -> CreateRepository {
-    //     let name = name.to_string();
-    //     match self.repo_manager.create_repository(&name).await {
-    //         Ok(_) => {
-    //             let msg = format!("{} Successfully Created", name);
-    //             tracing::debug!(msg);
-    //             CreateRepository::Ok(Json(msg))
-    //         }
-    //         Err(err) => {
-    //             let err_msg = format!("{} failed to create ({})", name, err);
-    //             tracing::error!(err_msg);
-    //             CreateRepository::ServerError(Json(err_msg))
-    //         }
-    //     }
-    // }
-
     /// Adds a new repository.
     ///
     /// # Parameters
@@ -210,16 +188,18 @@ impl Api {
     /// If the repository is built successfully, returns `GetTags::Ok` containing a message indicating success.
     /// If the provided method is invalid or if any error occurs during the build process, returns `GetTags::InternalServerError`
     /// with an appropriate error message.
-    #[oai(path = "/repo/:name/build/:method", method = "put")]
+    #[oai(path = "/repo/:method/build/:name/:url", method = "put")]
     pub async fn build_repo(
         &self,
         name: param::Path<String>,
         method: param::Path<String>,
+        url: param::Path<String>,
     ) -> BuildRepo {
-        let repo_name = name.to_string();
+        let name = name.to_string();
         let method = method.to_string();
+        let url = url.to_string();
 
-        let repo_path = &self.file_system.git_path(&repo_name);
+        let repo_path = &self.file_system.git_path(&name);
 
         // Validate the method
         if !["make", "script", "cargo", "docker"].contains(&method.as_str()) {
@@ -250,19 +230,50 @@ impl Api {
                 error!(err_msg);
                 return BuildRepo::ServerError(Json(err_msg));
             }
+            "cargo" if !script_data.has_cargo_toml() => {
+                let err_msg = "Cargo toml not found in the repository".to_string();
+                error!(err_msg);
+                return BuildRepo::ServerError(Json(err_msg));
+            }
             _ => (),
         }
 
         // Execute the build process based on the method
         match method.as_str() {
             "cargo" => {
-                let cargo_build_output = Command::new("cargo")
-                    .args(&["build"])
-                    .output()
-                    .map_err(|e| format!("Failed to execute cargo build command: {}", e));
+                let dockerfile_content = r#"
+                    FROM ubuntu:latest
+                    RUN apt-get update && \
+                        apt-get install -y curl && \
+                        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
+                        . $HOME/.cargo/env
+                "#;
 
-                if let Err(e) = cargo_build_output {
-                    let err_msg = format!("Cargo build failed: {}", e);
+                let container_name = format!("cargo_release_{}", &name);
+                let image_name = "my_image";
+
+                // Initialize DockerManager with the desired image name
+                let docker_manager = match DockerManager::new(&image_name, &container_name) {
+                    Ok(manager) => manager,
+                    Err(err) => {
+                        let err_msg = format!("Docker Error: {}", err);
+                        error!(err_msg);
+                        return BuildRepo::ServerError(Json(err_msg));
+                    }
+                };
+
+                docker_manager.build_image(dockerfile_content).unwrap();
+
+                // Run the Docker container
+                if let Err(err) = docker_manager.run_container(&[]) {
+                    let err_msg = format!("Failed to run Docker container: {}", err);
+                    error!(err_msg);
+                    return BuildRepo::ServerError(Json(err_msg));
+                }
+
+                // Execute the cargo build command inside the Docker container
+                if let Err(err) = docker_manager.run_command_in_container("cargo build") {
+                    let err_msg = format!("Cargo build failed: {}", err);
                     error!(err_msg);
                     return BuildRepo::ServerError(Json(err_msg));
                 }
@@ -301,10 +312,14 @@ impl Api {
             //         return BuildRepo::ServerError(Json(err_msg));
             //     }
             // }
-            _ => (), // For unsupported methods, do nothing
+            _ => {
+                let err_msg = "Invalid build method specified".to_string();
+                error!(err_msg);
+                return BuildRepo::ServerError(Json(err_msg));
+            }
         }
 
-        let msg = format!("Build successful for latest commit ({})", repo_name);
+        let msg = format!("Build successful for latest commit ({})", name);
         info!(msg);
 
         BuildRepo::Ok(Json(msg))
