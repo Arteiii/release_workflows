@@ -1811,8 +1811,8 @@
   "paths": {
     "/repo/{name}/add/{url}": {
       "post": {
-        "summary": "Create a new Repository",
-        "description": "create new repo\nAdds a new repository.\n\n# Parameters\n\n* `name`: Name of the repository.\n* `url`: URL of the repository.\n\n# Returns\n\n`AddRepository::Ok` if the repository is added successfully, otherwise `AddRepository::ServerError`.",
+        "summary": "Adds a new repository.",
+        "description": "# Parameters\n\n* `name`: Name of the repository.\n* `url`: URL of the repository.\n\n# Returns\n\n`AddRepository::Ok` if the repository is added successfully, otherwise `AddRepository::ServerError`.",
         "parameters": [
           {
             "name": "name",
@@ -1881,7 +1881,7 @@
         }
       }
     },
-    "/repo/{name}/build/{method}": {
+    "/repo/{method}/build/{name}/{url}": {
       "put": {
         "summary": "Builds a repository using the specified method.",
         "description": "# Parameters\n\n* `name`: Name of the repository.\n\n* `method`: The build method to be used. Valid methods are \"make\", \"script\", \"cargo\", and \"docker\".\n\n# Folder Structure\n\nFor the \"make\" method, a Makefile named \"Makefile\" must be present in the repository's `make/` directory.\nFor the \"script\" method, the script must be named \"build_script.sh\" and placed in the repository's `script/` directory.\n\nExample folder structure:\n```\nworkflows/\n├── make/\n│   └── Makefile\n└── script/\n│   └── build_script.sh\n\n```\n\n# Returns\n\nIf the repository is built successfully, returns `GetTags::Ok` containing a message indicating success.\nIf the provided method is invalid or if any error occurs during the build process, returns `GetTags::InternalServerError`\nwith an appropriate error message.",
@@ -1898,6 +1898,16 @@
           },
           {
             "name": "method",
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "required": true,
+            "deprecated": false,
+            "explode": true
+          },
+          {
+            "name": "url",
             "schema": {
               "type": "string"
             },
@@ -2018,13 +2028,17 @@
         "type": "object",
         "required": [
           "makefile",
-          "script"
+          "script",
+          "cargo_toml"
         ],
         "properties": {
           "makefile": {
             "type": "boolean"
           },
           "script": {
+            "type": "boolean"
+          },
+          "cargo_toml": {
             "type": "boolean"
           }
         }
